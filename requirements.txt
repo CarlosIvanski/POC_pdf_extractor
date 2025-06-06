@@ -1,0 +1,8 @@
+streamlit
+opencv-python
+pytesseract
+Pillow
+pdf2image
+numpy
+matplotlib
+pandas
