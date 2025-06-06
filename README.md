@@ -49,7 +49,7 @@ Sample invoices were generated using [Invoicefaker](https://invoicefaker.com/), 
 ```
 INVOICE_OCR/
 │
-├── app/                      # Optional web interface or CLI
+├── app/                      # Web interface or CLI
 │   └── app.py
 │
 ├── data/                     # Store sample invoices (PDF/PNG)
