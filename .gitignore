@@ -17,11 +17,6 @@ venv/
 *.swp
 *.bak
 
-# === App-specific ===
-data/
-outputs/
-*.csv
-*.json
 
 
 # === Compiled files / build artifacts ===

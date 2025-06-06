@@ -1,8 +1,5 @@
 # Scan Invoices, Extract Value : building An OCR App with Tesseract and Streamlit 
 
-This project extracts key fields (like invoice number, date, total, and payment details) from invoices using OCR for PDF inputs and includes a Streamlit web app for interactive usage.
-
----
 
 ## Project Overview
 This project demonstrates an end-to-end pipeline for extracting key information from invoice/receipt PDFs using Optical Character Recognition (OCR) and natural language processing techniques. It automates:
