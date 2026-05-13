@@ -40,6 +40,7 @@ def _extract_payment_details(text):
 def extract_fields(text):
     results = {
         "invoice_number": extract_field(text, r"Invoice\s*#?:?\s*(\d{3,})"),
+        "order_number": extract_field(text, r"ORDER\s*NUMBER\s*[:\s#]*(\d+)"),
         "date": _extract_date(text),
         "payment_details": _extract_payment_details(text),
     }
