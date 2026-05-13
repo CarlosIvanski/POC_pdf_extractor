@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from src.paths import project_root, resolve_poppler_bin, resolve_tesseract_cmd
 from src.pdf_converter import convert_pdfs_to_images
 from src.preprocess import preprocess_image
-from src.ocr_engine import run_ocr
+from src.ocr_engine import run_ocr, get_full_text
 from src.extractor import extract_fields
 from src.visualize import draw_boxes
 
@@ -79,7 +79,7 @@ for filename in os.listdir(image_dir):
     # Preprocess + OCR
     preprocessed = preprocess_image(img)
     ocr_result = run_ocr(preprocessed)
-    fields = extract_fields(ocr_dict=ocr_result)
+    fields = extract_fields(get_full_text(ocr_result))
     fields["source_file"] = filename
     summary.append(fields)
 

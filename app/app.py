@@ -99,11 +99,7 @@ if uploaded_files:
 
             preprocessed = preprocess_image(image)
             ocr_result = run_ocr(preprocessed)
-            try:
-                extracted = extract_fields(ocr_dict=ocr_result)
-            except TypeError:
-                # Older extractor (text-only); still works with ordered full text
-                extracted = extract_fields(get_full_text(ocr_result))
+            extracted = extract_fields(get_full_text(ocr_result))
             row = {**extracted, "source_file": base}
             all_results.append(row)
 
