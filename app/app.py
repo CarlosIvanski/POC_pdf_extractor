@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(os.path.join(_APP_DIR, "..")))
 from src.paths import resolve_poppler_bin, resolve_tesseract_cmd
 from src.pdf_converter import convert_pdfs_to_images
 from src.preprocess import preprocess_image
-from src.ocr_engine import run_ocr
+from src.ocr_engine import run_ocr, get_full_text
 from src.extractor import extract_fields
 from src.visualize import draw_boxes
 
@@ -99,7 +99,11 @@ if uploaded_files:
 
             preprocessed = preprocess_image(image)
             ocr_result = run_ocr(preprocessed)
-            extracted = extract_fields(ocr_dict=ocr_result)
+            try:
+                extracted = extract_fields(ocr_dict=ocr_result)
+            except TypeError:
+                # Older extractor (text-only); still works with ordered full text
+                extracted = extract_fields(get_full_text(ocr_result))
             row = {**extracted, "source_file": base}
             all_results.append(row)
 
