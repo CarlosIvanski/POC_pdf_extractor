@@ -37,8 +37,29 @@ def _extract_payment_details(text):
     return None
 
 
+def _extract_from_to(text):
+    """Seller / buyer lines between FROM and TO (OCR text is often one long line)."""
+    flat = re.sub(r"\s+", " ", text)
+    patterns = (
+        r"(?i)\bFROM\b\s+(.+?)\s+\bTO\b\s+(.+?)(?=\s+\bORDER\s+NUMBER\b)",
+        r"(?i)\bFROM\b\s+(.+?)\s+\bTO\b\s+(.+?)(?=\s+\bDATE\b)",
+        r"(?i)\bFROM\b\s+(.+?)\s+\bTO\b\s+(.+?)(?=\s+\bINVOICE\s*#)",
+    )
+    for p in patterns:
+        m = re.search(p, flat)
+        if m:
+            a = m.group(1).strip()
+            b = m.group(2).strip()
+            if len(a) > 2 and len(b) > 2:
+                return a, b
+    return None, None
+
+
 def extract_fields(text):
+    from_party, to_party = _extract_from_to(text)
     results = {
+        "from_party": from_party,
+        "to_party": to_party,
         "invoice_number": extract_field(text, r"Invoice\s*#?:?\s*(\d{3,})"),
         "order_number": extract_field(text, r"ORDER\s*NUMBER\s*[:\s#]*(\d+)"),
         "date": _extract_date(text),
