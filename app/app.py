@@ -7,13 +7,17 @@ import pytesseract
 import pandas as pd
 import tempfile
 
-# Add the parent directory of 'app' to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Imports: local helpers from this folder, then project `src/`
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+if _APP_DIR not in sys.path:
+    sys.path.insert(0, _APP_DIR)
+sys.path.append(os.path.abspath(os.path.join(_APP_DIR, "..")))
 
+from ocr_stats_helper import ocr_stats
 from src.paths import resolve_poppler_bin, resolve_tesseract_cmd
 from src.pdf_converter import convert_pdfs_to_images
 from src.preprocess import preprocess_image
-from src.ocr_engine import run_ocr, get_full_text, ocr_stats
+from src.ocr_engine import run_ocr, get_full_text
 from src.extractor import extract_fields
 from src.visualize import draw_boxes
 
