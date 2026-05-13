@@ -55,6 +55,7 @@ INVOICE_OCR/
 ├── poppler-24.08.0/          # Bundled poppler binaries (for Windows)
 │
 ├── src/                      # Core OCR + Extraction modules
+│   ├── paths.py              # Poppler / Tesseract path resolution
 │   ├── extractor.py          # Extracts fields from OCR'd text
 │   ├── ocr_engine.py         # Runs Tesseract OCR on preprocessed images
 │   ├── pdf_converter.py      # Converts PDF invoices to images (using Poppler)
@@ -62,10 +63,13 @@ INVOICE_OCR/
 │   ├── visualize.py          # Optional: draw boxes around detected text
 │
 │
+├── scripts/                  # e.g. download_poppler.py (Windows)
+│
 ├── main.py                   # Run full pipeline from image/PDF
-├── README.md                 # README file
-├── LICENSE                   # README file
-└── requirements.txt          # requirements file
+├── packages.txt              # Apt packages for Streamlit Community Cloud (Linux)
+├── README.md
+├── LICENSE
+└── requirements.txt
 ```
 
 ---
@@ -102,15 +106,11 @@ pip install -r requirements.txt
 Make sure tesseract is in the system PATH.
 
 ### 5. Install Poppler for PDF to image conversion
-Poppler binaries are already included in the project under poppler-24.08.0.
-or install 
 
-Add paths to main.py and app.py
+Paths are resolved in `src/paths.py` (project root, optional `POPPLER_BIN` / `TESSERACT_CMD`).
 
-```python
-poppler_bin_path = os.path.join(os.getcwd(), "poppler-24.08.0", "Library","bin")
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-```
+* **Windows:** run `python scripts/download_poppler.py` once (extracts into `poppler-windows/`, gitignored), or install Poppler and set `POPPLER_BIN` to its `Library\bin` folder.
+* **Linux / macOS:** install Poppler and Tesseract on the system (`apt install poppler-utils tesseract-ocr` on Debian/Ubuntu); `pdfinfo` and `tesseract` should be on `PATH`.
 ---
 
 ## Run the Project
@@ -135,6 +135,33 @@ streamlit run app/app.py
 * Download combined CSV
 
 ![alt text](images/image.png)
+
+## Deploy on Streamlit Community Cloud
+
+The repo includes `packages.txt` so the Linux runtime installs **Poppler** and **Tesseract** (`apt`).
+
+1. Push this repository to GitHub (see below if you still need a remote).
+2. Sign in at [share.streamlit.io](https://share.streamlit.io) with GitHub.
+3. **New app** → pick the repository and branch.
+4. **Main file path:** `app/app.py`
+5. **Python version:** 3.11 (or 3.12) is fine; deploy and wait for the build to finish.
+
+Optional: set [Secrets](https://docs.streamlit.io/streamlit-community-cloud/deploy-your-app/secrets-management) only if you add API keys later.
+
+### Pushing to GitHub (first time or new repo)
+
+```bash
+git add -A
+git commit -m "Describe your changes"
+git push -u origin master   # or main
+```
+
+To use a **new** empty repository under your account: create it on GitHub (no README), then:
+
+```bash
+git remote set-url origin https://github.com/<your-username>/<your-repo>.git
+git push -u origin master
+```
 
 ## How It Works
 * PDF Converter: uses pdf2image to turn PDFs into JPEG images

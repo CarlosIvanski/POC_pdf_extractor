@@ -9,21 +9,38 @@ import tempfile
 # Add the parent directory of 'app' to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from src.paths import resolve_poppler_bin, resolve_tesseract_cmd
 from src.pdf_converter import convert_pdfs_to_images
 from src.preprocess import preprocess_image
 from src.ocr_engine import run_ocr, get_full_text
 from src.extractor import extract_fields
 from src.visualize import draw_boxes
 
-poppler_bin_path = os.path.join(os.getcwd(), "poppler-24.08.0", "Library","bin")
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+poppler_bin_path = resolve_poppler_bin()
+tesseract_cmd = resolve_tesseract_cmd()
+if tesseract_cmd:
+    pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
 st.set_page_config(page_title="Invoice OCR App", layout="centered")
 st.title("Invoice OCR - PDF to Structured Data")
 
+if not poppler_bin_path:
+    st.warning(
+        "**Poppler** não encontrado. Na raiz do projeto corre: "
+        "`python scripts/download_poppler.py` (descarrega e extrai para `poppler-windows/`). "
+        "Ou define **POPPLER_BIN** com o caminho da pasta `bin` que contém `pdfinfo.exe`, "
+        "ou adiciona essa pasta ao PATH."
+    )
+
 uploaded_files = st.file_uploader("Upload Invoice PDFs", type=["pdf"], accept_multiple_files=True)
 
 if uploaded_files:
+    if not poppler_bin_path:
+        st.error(
+            "Sem Poppler. Corre na raiz do projeto: `python scripts/download_poppler.py` "
+            "ou configura **POPPLER_BIN**."
+        )
+        st.stop()
     all_results = []
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -62,7 +79,7 @@ if uploaded_files:
 
             # Visualize OCR bounding boxes
             boxed_img = draw_boxes(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), ocr_result)
-            st.image(boxed_img, caption="OCR Bounding Boxes",  use_container_width=True)
+            st.image(boxed_img, caption="OCR Bounding Boxes", width="stretch")
 
         # Show combined results as a DataFrame
         if all_results:

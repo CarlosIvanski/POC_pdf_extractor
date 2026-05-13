@@ -1,4 +1,5 @@
 import os
+import sys
 import cv2
 import pytesseract
 import argparse
@@ -6,6 +7,7 @@ import logging
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from src.paths import project_root, resolve_poppler_bin, resolve_tesseract_cmd
 from src.pdf_converter import convert_pdfs_to_images
 from src.preprocess import preprocess_image
 from src.ocr_engine import run_ocr, get_full_text
@@ -25,13 +27,31 @@ parser = argparse.ArgumentParser(description="Invoice OCR pipeline")
 parser.add_argument("--headless", action="store_true", help="Run without showing plots")
 args = parser.parse_args()
 
-# --- Paths ---
-pdf_dir = "data/pdf"
-image_dir = "data/raw"
-visual_dir = "data/visuals"
-output_dir = "data/processed"
-poppler_bin_path = os.path.join(os.getcwd(), "poppler-24.08.0", "Library","bin")
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# --- Paths (repo root, not cwd — reliable with Streamlit / IDEs) ---
+root = project_root()
+pdf_dir = os.path.join(root, "data", "pdf")
+image_dir = os.path.join(root, "data", "raw")
+visual_dir = os.path.join(root, "data", "visuals")
+output_dir = os.path.join(root, "data", "processed")
+
+poppler_bin_path = resolve_poppler_bin()
+if not poppler_bin_path:
+    logging.error(
+        "Poppler not found (bin folder with pdfinfo). Download Poppler for Windows "
+        "(e.g. https://github.com/oschwartz10612/poppler-windows/releases), extract it, "
+        "and set POPPLER_BIN to the absolute path of the bin folder "
+        "(e.g. C:\\\\poppler\\\\Library\\\\bin)."
+    )
+    sys.exit(1)
+
+tesseract_cmd = resolve_tesseract_cmd()
+if not tesseract_cmd:
+    logging.error(
+        "Tesseract not found. Install Tesseract or set TESSERACT_CMD to the full path "
+        "to tesseract.exe."
+    )
+    sys.exit(1)
+pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
 os.makedirs(image_dir, exist_ok=True)
 os.makedirs(output_dir, exist_ok=True)

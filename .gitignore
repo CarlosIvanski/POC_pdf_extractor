@@ -19,6 +19,9 @@ venv/
 
 
 
+# === Local Poppler (Windows binaries; run scripts/download_poppler.py) ===
+poppler-windows/
+
 # === Compiled files / build artifacts ===
 *.so
 *.dll
