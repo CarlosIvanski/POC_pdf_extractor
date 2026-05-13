@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(os.path.join(_APP_DIR, "..")))
 from src.paths import resolve_poppler_bin, resolve_tesseract_cmd
 from src.pdf_converter import convert_pdfs_to_images
 from src.preprocess import preprocess_image
-from src.ocr_engine import run_ocr, get_full_text
+from src.ocr_engine import run_ocr
 from src.extractor import extract_fields
 from src.visualize import draw_boxes
 
@@ -56,7 +56,10 @@ def _rows_for_export(rows: list[dict]) -> pd.DataFrame:
 
 st.set_page_config(page_title="Invoice OCR", layout="wide", initial_sidebar_state="collapsed")
 st.title("Invoice OCR")
-st.caption("Upload PDF invoices — green boxes show OCR words; the table lists extracted fields.")
+st.caption(
+    "Upload PDF invoices. Preview is scaled for readability. "
+    "Extraction uses Tesseract reading order plus token-based FROM/TO detection and regex fallbacks for other fields."
+)
 
 if not poppler_bin_path:
     st.warning(
@@ -96,13 +99,18 @@ if uploaded_files:
 
             preprocessed = preprocess_image(image)
             ocr_result = run_ocr(preprocessed)
-            full_text = get_full_text(ocr_result)
-            extracted = extract_fields(full_text)
+            extracted = extract_fields(ocr_dict=ocr_result)
             row = {**extracted, "source_file": base}
             all_results.append(row)
 
             boxed_img = draw_boxes(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), ocr_result)
-            st.image(boxed_img, caption="OCR bounding boxes (green)", width="stretch")
+            _, center, _ = st.columns([1, 2, 1])
+            with center:
+                st.image(
+                    boxed_img,
+                    caption="OCR word boxes (green) — preview width capped for readability",
+                    width=680,
+                )
 
             st.dataframe(
                 pd.DataFrame([_display_row(row)]),
