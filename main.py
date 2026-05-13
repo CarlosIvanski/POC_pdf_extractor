@@ -81,6 +81,7 @@ for filename in os.listdir(image_dir):
     ocr_result = run_ocr(preprocessed)
     fields = extract_fields(get_full_text(ocr_result))
     fields["source_file"] = filename
+    fields.pop("line_items", None)
     summary.append(fields)
 
     # Draw and save visualization

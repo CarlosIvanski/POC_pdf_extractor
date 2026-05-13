@@ -32,12 +32,16 @@ TABLE_ORDER = [
     ("date", "Date"),
     ("payment_details", "Payment"),
     ("invoice_total", "Value (EUR)"),
+    ("line_item_count", "# line items"),
 ]
 
 
 def _display_row(record: dict) -> dict:
     out = {}
     for key, label in TABLE_ORDER:
+        if key == "line_item_count":
+            out[label] = len(record.get("line_items") or [])
+            continue
         val = record.get(key)
         if key == "invoice_total" and val is not None:
             try:
@@ -50,15 +54,15 @@ def _display_row(record: dict) -> dict:
 
 
 def _rows_for_export(rows: list[dict]) -> pd.DataFrame:
-    cols = [k for k, _ in TABLE_ORDER]
-    return pd.DataFrame([{k: r.get(k) for k in cols} for r in rows])
+    keys = [k for k, _ in TABLE_ORDER if k != "line_item_count"] + ["line_items_json"]
+    return pd.DataFrame([{k: r.get(k) for k in keys} for r in rows])
 
 
 st.set_page_config(page_title="Invoice OCR", layout="wide", initial_sidebar_state="collapsed")
 st.title("Invoice OCR")
 st.caption(
-    "Upload PDF invoices. Preview is scaled for readability. "
-    "Extraction uses Tesseract reading order plus token-based FROM/TO detection and regex fallbacks for other fields."
+    "Upload PDF invoices. Preview is scaled. Extraction uses reading order, token-based FROM/TO, "
+    "regex fallbacks, and a bounded table scan for line items."
 )
 
 if not poppler_bin_path:
@@ -108,19 +112,29 @@ if uploaded_files:
             with center:
                 st.image(
                     boxed_img,
-                    caption="OCR word boxes (green) — preview width capped for readability",
+                    caption="OCR word boxes (green)",
                     width=680,
                 )
 
+            st.markdown("**Header fields**")
             st.dataframe(
                 pd.DataFrame([_display_row(row)]),
                 hide_index=True,
                 use_container_width=True,
             )
 
+            line_items = row.get("line_items") or []
+            if line_items:
+                st.markdown("**Line items**")
+                st.dataframe(
+                    pd.DataFrame(line_items),
+                    hide_index=True,
+                    use_container_width=True,
+                )
+
         if all_results:
             st.divider()
-            st.subheader("All pages")
+            st.subheader("All pages (summary)")
             summary = pd.DataFrame([_display_row(r) for r in all_results])
             st.dataframe(summary, hide_index=True, use_container_width=True)
 
